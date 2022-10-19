@@ -18,6 +18,8 @@ function useKeyDown(key, onKeyDown) {
 }
 
 const StyledScreen = styled.div`
+  height: 30rem;
+  width: 50rem;
   padding: 1rem;
   padding-top: 2rem;
   background: white;
@@ -26,6 +28,51 @@ const StyledScreen = styled.div`
 
   > header {
     margin-bottom: 1rem;
+  }
+
+  [data-variant='welcome-screen-div'] {
+    font-size: 26px;
+    padding: 18%;
+    margin-top: 2%;
+    border-radius: 15px;
+    background-color: lightblue;
+  }
+
+  [data-variant='question-screen-div'] {
+    font-size: 26px;
+    padding: 20%;
+    padding-left: 29%;
+    margin-top: 1.5%;
+    border-radius: 15px;
+    background-color: lightyellow;
+  }
+
+  [data-variant='form-screen-div'] {
+    font-size: 26px;
+    padding-top: 19%;
+    padding-bottom: 16.4%;
+    padding-left: 35%;
+    padding-right: 30%;
+    border-radius: 15px;
+    background-color: #Cdbeda;
+  }
+
+  [data-variant='thanks-screen-div'] {
+    font-size: 26px;
+    padding-top: 26%;
+    padding-bottom: 24%;
+    padding-left: 27%;
+    padding-right: 30%;
+    border-radius: 15px;
+    background-color: #B7e8b6;
+  }
+
+  [data-variant='form-textarea'] {
+    margin-top: 7%;
+  }
+
+  [data-variant='form-submit-button'] {
+    margin-left: 27%;
   }
 
   button {
@@ -46,11 +93,21 @@ const StyledScreen = styled.div`
       margin-left: 0.5rem;
     }
 
+    &[data-variant='next'] {
+      text-align: center;
+      position: relative;
+      margin-top: 10%;
+      left: 41%;
+      right: 50%;
+    }
     &[data-variant='good'] {
       background-color: #7cbd67;
+      margin-top: 7%;
+      left: 15%;
     }
     &[data-variant='bad'] {
       background-color: #ff4652;
+      left: 21%;
     }
   }
 
@@ -84,22 +141,41 @@ const StyledScreen = styled.div`
   }
 `;
 
+function WelcomeScreen({ onClickNext }) {
+  return (
+    <StyledScreen data-testid="welcome-screen">
+      <div data-variant="welcome-screen-div">
+        <header>Thank you for attending QECamp 2022! &#128571;</header>
+        <button
+          onClick={onClickNext}
+          data-testid="next-button"
+          data-variant="next"
+        >
+        Next
+        </button>
+      </div>
+    </StyledScreen>
+  );
+}
+
 function QuestionScreen({ onClickGood, onClickBad, onClose }) {
   useKeyDown('Escape', onClose);
 
   return (
     <StyledScreen data-testid="question-screen">
-      <header>How was your experience?</header>
-      <button
-        onClick={onClickGood}
-        data-testid="good-button"
-        data-variant="good"
-      >
-        Good
-      </button>
-      <button onClick={onClickBad} data-testid="bad-button" data-variant="bad">
-        Bad
-      </button>
+      <div data-variant="question-screen-div">
+        <header>How was your experience?</header>
+        <button
+          onClick={onClickGood}
+          data-testid="good-button"
+          data-variant="good"
+        >
+          Good
+        </button>
+        <button onClick={onClickBad} data-testid="bad-button" data-variant="bad">
+          Bad
+        </button>
+      </div>
       <button data-testid="close-button" title="close" onClick={onClose} />
     </StyledScreen>
   );
@@ -121,18 +197,26 @@ function FormScreen({ onSubmit, onClose }) {
         });
       }}
     >
-      <header>Care to tell us why?</header>
-      <textarea
-        data-testid="response-input"
-        name="response"
-        placeholder="Complain here"
-        onKeyDown={e => {
-          if (e.key === 'Escape') {
-            e.stopPropagation();
-          }
-        }}
-      />
-      <button data-testid="submit-button">Submit</button>
+      <div data-variant="form-screen-div">
+        <header>Care to tell us why?</header>
+        <textarea
+          data-testid="response-input"
+          data-variant="form-textarea"
+          name="response"
+          placeholder="Complain here"
+          onKeyDown={e => {
+            if (e.key === 'Escape') {
+              e.stopPropagation();
+            }
+          }}
+        />
+        <button
+          data-testid="submit-button"
+          data-variant="form-submit-button"
+        >
+          Submit
+        </button>
+      </div>
       <button
         data-testid="close-button"
         title="close"
@@ -148,14 +232,23 @@ function ThanksScreen({ onClose }) {
 
   return (
     <StyledScreen data-testid="thanks-screen">
-      <header>Thanks for your feedback.</header>
-      <button data-testid="close-button" title="close" onClick={onClose} />
+      <div data-variant="thanks-screen-div">
+        <header>Thanks for your feedback &#127881;</header>
+        <button data-testid="close-button" title="close" onClick={onClose} />
+      </div>
     </StyledScreen>
   );
 }
 
 function feedbackReducer(state, event) {
   switch (state) {
+    case 'welcome':
+      switch (event.type) {
+        case 'NEXT':
+          return 'question';
+        default:
+          return state;
+      }
     case 'question':
       switch (event.type) {
         case 'GOOD':
@@ -189,9 +282,15 @@ function feedbackReducer(state, event) {
 }
 
 function Feedback() {
-  const [state, send] = useReducer(feedbackReducer, 'question');
+  const [state, send] = useReducer(feedbackReducer, 'welcome');
 
   switch (state) {
+    case 'welcome':
+      return (
+        <WelcomeScreen
+          onClickNext={() => send({ type: 'NEXT' })}
+        />
+      );
     case 'question':
       return (
         <QuestionScreen

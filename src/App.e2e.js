@@ -4,8 +4,18 @@ const { createModel } = require('@xstate/test');
 describe('feedback app', () => {
   const feedbackMachine = Machine({
     id: 'feedback',
-    initial: 'question',
+    initial: 'welcome',
     states: {
+      welcome: {
+        on: {
+          CLICK_NEXT: 'question'
+        },
+        meta: {
+          test: async page => {
+            await page.waitFor('[data-testid="welcome-screen"]');
+          }
+        }
+      },
       question: {
         on: {
           CLICK_GOOD: 'thanks',
@@ -57,6 +67,9 @@ describe('feedback app', () => {
 
   const testModel = createModel(feedbackMachine, {
     events: {
+      CLICK_NEXT: async page => {
+        await page.click('[data-testid="next-button"]');
+      },
       CLICK_GOOD: async page => {
         await page.click('[data-testid="good-button"]');
       },
